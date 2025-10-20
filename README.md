@@ -1,74 +1,63 @@
-# RAG Document Chatbot
+# RAG Chatbot
 
-AI-powered chatbot that answers questions about documents using Retrieval Augmented Generation (RAG).
+AI-powered chatbot that answers questions about documents using Retrieval Augmented Generation.
 
-## 🚀 Features
-- Document processing and chunking
+## Features
+- Document processing and embedding
 - Vector similarity search
-- Natural language responses using OpenAI
-- Simple web interface
+- Context-aware responses using OpenAI
 
-## 🛠️ Tech Stack
+## Tech Stack
 - Python
 - LangChain
 - OpenAI API
-- Pinecone/ChromaDB
-- Streamlit
+- Pinecone
 
-## 📦 Installation
+## Setup
+
+1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## 🔑 Setup
-
-1. Get OpenAI API key from openai.com
-2. Create `.env` file:
+2. Add your API keys to `.env`:
 ```
 OPENAI_API_KEY=your_key_here
 ```
 
-## 🚀 Usage
+3. Run:
 ```bash
-streamlit run app.py
+python ingestion.py
+python statelessbot.py
 ```
 
-## 📝 How It Works
+## How It Works
+Step 1
+PDF Documents are ingested into RAG pipeline
+(Loaded, thereafter splitted into small chunks, then embedded into vectors using openAI vectors and then stored in Pinecone vectorised Database) 
 
-1. Documents are loaded and split into chunks
-2. Chunks are converted to embeddings
-3. Embeddings stored in vector database
-4. User query is embedded and similar chunks retrieved
-5. LLM generates answer using retrieved context
+Step 2
+User provides a query
 
-## 🎯 Future Improvements
-- [ ] Support more document types
-- [ ] Add chat history
+step 3
+The query is converted into an embedding.
+Pinecone compares it with stored embeddings to find the most semantically similar chunks.
+These chunks become the context for the LLM.
+
+step 4
+The retrieved chunks are formatted into a single string (using format_docs) and plugged into a prompt template:
+"""
+Answer the question based only on the following context:
+{context}
+
+Question: {question}
+"""
+
+step 5
+The prompt is sent to the OpenAI chat model (ChatOpenAI) to generate a response.
+The output is parsed into a plain string (StrOutputParser) for easy use.
+
+## Next Steps
+- [ ] Add Streamlit UI
+- [ ] Deploy to cloud
 - [ ] Improve chunking strategy
-- [ ] Add source citations
-
-## 📄 License
-MIT
-```
-
----
-
-## .gitignore
-```
-# API Keys
-.env
-*.env
-
-# Python
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
-
-# Data
-data/
-*.pdf
-*.txt
-
-# Virtual Environment
-venv/
-env/
