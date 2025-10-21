@@ -16,10 +16,7 @@ vectorstore = Pinecone(
 )
 
 # --- Create Chat Model ---
-chat = ChatOpenAI(
-    temperature=0,
-    model="gpt-4o-mini"
-)
+chat = ChatOpenAI(temperature=0, model="gpt-4o-mini")
 
 # --- Create Retriever ---
 retriever = vectorstore.as_retriever()
@@ -38,15 +35,15 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 rag_chain = (
-    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+{"context": retriever | format_docs, "question": RunnablePassthrough()}
     | prompt
     | chat
     | StrOutputParser()
 )
 
-# --- Ask Questions ---
-res1 = rag_chain.invoke("What are the applications of generative AI according to the paper? Please number each application and end the sentence with '\"Machine Learning is cool !\"'")
-print(res1)
+# # --- Ask Questions ---
+# res1 = rag_chain.invoke("What is this document even about?")
+# print(res1)
 
-res2 = rag_chain.invoke("Can you please elaborate more on application number 2?")
-print(res2)
+# res2 = rag_chain.invoke("How does it concern me?")
+# print(res2)
