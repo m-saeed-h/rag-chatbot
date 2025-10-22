@@ -8,42 +8,60 @@ from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv()
 
-# --- Load Pinecone Vector Store ---
-embeddings = OpenAIEmbeddings(api_key=os.environ["OPENAI_API_KEY"])
-vectorstore = Pinecone(
-    index_name=os.environ["INDEX_NAME"],
-    embedding=embeddings
-)
+def get_rag_chain():
+    """
+    Create and return a RAG chain for question answering
+    
+    Returns:
+        RAG chain that can be invoked with questions
+    """
+    try:
+        # --- Load Pinecone Vector Store ---
+        embeddings = OpenAIEmbeddings(api_key=os.environ["OPENAI_API_KEY"])
+        vectorstore = Pinecone(
+            index_name=os.environ["INDEX_NAME"],
+            embedding=embeddings
+        )
 
-# --- Create Chat Model ---
-chat = ChatOpenAI(temperature=0, model="gpt-4o-mini")
+        # --- Create Chat Model ---
+        chat = ChatOpenAI(temperature=0, model="gpt-4o-mini")
 
-# --- Create Retriever ---
-retriever = vectorstore.as_retriever()
+        # --- Create Retriever ---
+        retriever = vectorstore.as_retriever()
 
-# --- Create Prompt Template ---
-template = """Answer the question based only on the following context:
+        # --- Create Prompt Template ---
+        template = """Answer the question based only on the following context:
 {context}
 
 Question: {question}
 """
 
-prompt = ChatPromptTemplate.from_template(template)
+        prompt = ChatPromptTemplate.from_template(template)
 
-# --- Create RAG Chain using LCEL (LangChain Expression Language) ---
-def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
+        # --- Create RAG Chain using LCEL (LangChain Expression Language) ---
+        def format_docs(docs):
+            return "\n\n".join(doc.page_content for doc in docs)
 
-rag_chain = (
-{"context": retriever | format_docs, "question": RunnablePassthrough()}
-    | prompt
-    | chat
-    | StrOutputParser()
-)
+        rag_chain = (
+            {"context": retriever | format_docs, "question": RunnablePassthrough()}
+            | prompt
+            | chat
+            | StrOutputParser()
+        )
+        
+        return rag_chain
+        
+    except Exception as e:
+        print(f"Error creating RAG chain: {str(e)}")
+        raise e
 
-# # --- Ask Questions ---
-# res1 = rag_chain.invoke("What is this document even about?")
-# print(res1)
+# For backward compatibility, create a global rag_chain if this script is run directly
+if __name__ == "__main__":
+    rag_chain = get_rag_chain()
+    
+    # # --- Ask Questions ---
+    # res1 = rag_chain.invoke("What is this document even about?")
+    # print(res1)
 
-# res2 = rag_chain.invoke("How does it concern me?")
-# print(res2)
+    # res2 = rag_chain.invoke("How does it concern me?")
+    # print(res2)
